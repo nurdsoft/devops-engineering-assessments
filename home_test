@@ -1,87 +1,87 @@
-terraform {
-        required_providers {
-        aws = {
-        source = "hashicorp/aws"
-        version = "-> 4.16"
-}
-}
-required_verion = ">= 1.2.0"
-}
+name: "Terraform"
 
-provider "aws"
-        region = "us-east-1"
-}
+on:
+  push:
+    branches:
+      - main
+  pull_request_target:
+    types:
+      - opened
 
-resource "aws_instance" "terraform-web" {
-        ami = "ami-0b69ea66ff7391e80"
-        instance_type = "t2.micro"
-        key_name = var.key_name 
-        vpc_security_group_ids = ["${aws_security_group.terraform-webSG.id}"] 
-        subnet_id = var.subnet_id
-        associate_public_ip_address = true
-        source_dest_check = false
-        tags = {
-                Name = "web"
-}
-}
-          
-          
-          
-          
- 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
-resource "aws_security_group" "terraform-webSG" {
-ingress {
-   from_port = 22
-   to_port = 22
-   protocol = "tcp"
-   cidr_blocks = ["0.0.0.0/0"]
- }
+jobs:
+  terraform:
+    name: "Terraform"
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+    
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Check AWS Identity
+        run: aws sts get-caller-identity
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.2
+      
+      - name: Terraform Format
+        id: fmt
+        run: make fmt
 
-egress {
-   from_port = 0
-   to_port = 0
-   protocol = "-1"
-   cidr_blocks = ["0.0.0.0/0"]
-   }
-vpc_id = var.vpc_id
-
-tags = {
-     Name = "web-SG"
-    }   
-}
-          
-          
-          
-output "instance_id" {
-        description = "ID of the EC2 instance"
-        value       = aws_instance.terraform-web.id
-}
-
-output "instance_public_ip" {
-        description = "Public IP address of the EC2 instance"
-        value       = aws_instance.terraform-web.public_ip
-}
-
-
-
-variable "region" {
-  description = "Enter the region"
-  type        = string
-}
-variable "key_name" {
-  description = "Enter the ec2 key name"
-  type        = string
-}
-variable "instance_type" {
-  description = "Enter the ec2 instance type"
-  type        = string
-}
-variable "subnet_id" {
-  description = "Enter the subnet ID"
-  type        = string
-}
-variable "vpc_id" {
-  description = "Enter the VPC ID"
-  type        = string
-}
+      - name: Terraform Init
+        id: init
+        run: make init
+      
+      - name: Terraform Validate
+        id: validate
+        run: make validate
+      
+      - name: Terraform Plan
+        id: plan
+        if: github.event_name == 'pull_request'
+        run: make plan
+        continue-on-error: true
+      
+      - name: Update Pull Request
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.TP_GH_PAT }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            <details><summary>Show Plan</summary>
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+            </details>
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+      
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
