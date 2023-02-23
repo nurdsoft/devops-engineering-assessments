@@ -51,7 +51,7 @@ resource "aws_instance" "my_instance" {
 
   
 }
-/* resource "aws_security_group" "my_security_group" {
+ resource "aws_security_group" "my_security_group" {
   egress = [
     {
       cidr_blocks      = [ "0.0.0.0/0", ]
@@ -78,6 +78,6 @@ resource "aws_instance" "my_instance" {
      to_port          = 22
   }
   ]
-} */
+} 
 
 
