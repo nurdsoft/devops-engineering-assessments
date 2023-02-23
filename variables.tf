@@ -2,7 +2,7 @@ variable "my_instance_vpc_id" {
 description = "enter vpc value"   
 }
 variable "my_instance_subnet_id" {
-description = "enter vpc value" 
+description = "enter subnet value" 
 }
 variable "my_instance_region" {
 description = "enter region value"
