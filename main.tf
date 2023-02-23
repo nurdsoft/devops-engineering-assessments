@@ -42,14 +42,7 @@ resource "aws_instance" "my_instance" {
   instance_type = "t2.micro"
   key_name= "aws_key"
     #vpc_security_group_ids = [aws_security_group.my_security_group.id]
-    
-
-  network_interface {
-    network_interface_id = aws_network_interface.my_network_interface.id
-    device_index         = 0
-  }
-
-  
+     
 }
 resource "aws_network_interface_sg_attachment" "my_sg_attachment" {
   security_group_id    = aws_security_group.my_security_group.id
