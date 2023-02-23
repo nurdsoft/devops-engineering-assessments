@@ -41,7 +41,7 @@ resource "aws_instance" "my_instance" {
   ami           = "ami-0e742cca61fb65051" # us-west-2
   instance_type = "t2.micro"
   key_name= "aws_key"
-    vpc_security_group_ids = [aws_security_group.my_security_group.id]
+    #vpc_security_group_ids = [aws_security_group.my_security_group.id]
     
 
   network_interface {
@@ -49,11 +49,9 @@ resource "aws_instance" "my_instance" {
     device_index         = 0
   }
 
-  credit_specification {
-    cpu_credits = "unlimited"
-  }
+  
 }
-resource "aws_security_group" "my_security_group" {
+/* resource "aws_security_group" "my_security_group" {
   egress = [
     {
       cidr_blocks      = [ "0.0.0.0/0", ]
@@ -80,6 +78,6 @@ resource "aws_security_group" "my_security_group" {
      to_port          = 22
   }
   ]
-}
+} */
 
 
