@@ -1,6 +1,6 @@
-output "my_instance_instance_id" {
+output "InstanceId" {
   value = aws_instance.my_instance.id
 }
-output "my_instance_public_ip_address" {
+output "PublicIpAddress" {
   value = aws_instance.my_instance.public_ip
 }
