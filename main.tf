@@ -24,7 +24,7 @@ Name    = "my_VPC"
 resource "aws_internet_gateway" "my_internet_gateway" {
 vpc_id    = aws_vpc.my_vpc.id
 tags = {
-Name    = "internet_gateway"
+Name = var.internet_gateway
 }
 }
 # Create Public Subnet

@@ -13,3 +13,6 @@ description = "enter key value"
 variable "instance_type" {
 description = "enter instance type value" 
 }
+variable "internet_gateway" {
+description = "enter internet gateway value" 
+}
