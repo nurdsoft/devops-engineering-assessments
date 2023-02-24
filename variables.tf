@@ -1,7 +1,7 @@
-/* variable "my_instance_vpc_id" {
+/* variable "vpc_id" {
 description = "enter vpc value"   
 }
-variable "my_instance_subnet_id" {
+variable "subnet_id" {
 description = "enter subnet value" 
 } */
 variable "region" {
