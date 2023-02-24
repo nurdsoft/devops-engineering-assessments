@@ -7,8 +7,9 @@ terraform {
   }
 }
 
-provider "aws" {
+provider "aws" { 
   # Configuration options
+  region = var.my_instance_region
 }
 
 # Create VPC
@@ -75,14 +76,12 @@ tags   = {
 Name = "SSH Security Group"
 }
 }
-# Create Security Group for the Web Server
-# terraform aws create security group
 
 #Create a new EC2 launch configuration
 resource "aws_instance" "my_instance" {
 ami                    = "ami-0e742cca61fb65051"
-instance_type               = "t2.micro"
-key_name                    = "aws_key"
+instance_type               = var.my_instance_instance_type
+key_name                    = var.my_instance_key_name
 security_groups             = [aws_security_group.my_security_group.id]
 subnet_id                   = aws_subnet.my_public_subnet.id
 associate_public_ip_address = true
