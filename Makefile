@@ -3,10 +3,10 @@
 ## -----------------------------------------------------------------------------
 
 # Global variables with a default value. Override as needed when invoking make.
-AWS_REGION?="us-west-2"
-AWS_KEY_NAME?="infra"
-AWS_VPC_ID?="vpc-a6f052c3"
-AWS_SUBNET_ID?="subnet-a46befc1"
+AWS_REGION="us-east-1"
+AWS_KEY_NAME="ec2key1"
+AWS_VPC_ID="vpc-039cd443122214def"
+AWS_SUBNET_ID="subnet-0409d3e8db0c7021b"
 AWS_INSTANCE_TYPE="t2.micro"
 
 # Static variables.
