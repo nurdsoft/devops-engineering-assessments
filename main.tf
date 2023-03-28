@@ -1,9 +1,9 @@
 resource "aws_instance" "my_instance" {
   ami             = "ami-08d70e59c07c61a3a"
-  instance_type   = "${var.ami_type}"
+  instance_type   = var.ami_type
   security_groups = [aws_security_group.instances.name]
-  key_name = "${var.ami_key_pair_name}"
-  subnet_id = "${var.subnet_id}"
+  key_name        = var.ami_key_pair_name
+  subnet_id       = var.subnet_id
 }
 
 
@@ -24,9 +24,9 @@ resource "aws_security_group_rule" "allow_ssh_inbound" {
   security_group_id = aws_security_group.instances.id
 
   cidr_blocks = ["0.0.0.0/0"]
-  from_port = 22
-  to_port = 22
-  protocol = "tcp"
+  from_port   = 22
+  to_port     = 22
+  protocol    = "tcp"
 }
 
 resource "aws_security_group_rule" "allow_all_outbound" {
