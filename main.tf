@@ -1,8 +1,8 @@
 resource "aws_instance" "my_instance" {
   ami             = "ami-08d70e59c07c61a3a"
-  instance_type   = var.ami_type
+  instance_type   = var.instance_type
   security_groups = [aws_security_group.instances.name]
-  key_name        = var.ami_key_pair_name
+  key_name        = var.key_name
   subnet_id       = var.subnet_id
 }
 
