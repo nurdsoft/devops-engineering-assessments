@@ -1,0 +1,43 @@
+# Terraform Makefile for creating an EC2 instance with a Linux-based OS
+
+# Set default values for inputs
+REGION ?= us-west-2
+KEY_NAME ?= my-keypair
+INSTANCE_TYPE ?= t2.micro
+
+# Define Terraform commands
+init:
+	terraform init
+
+plan:
+	terraform plan \
+		-var region=$(REGION) \
+		-var key_name=$(KEY_NAME) \
+		-var instance_type=$(INSTANCE_TYPE) \
+		-var subnet_id=$(SUBNET_ID) \
+		-var vpc_id=$(VPC_ID)
+
+apply:
+	terraform apply \
+		-var region=$(REGION) \
+		-var key_name=$(KEY_NAME) \
+		-var instance_type=$(INSTANCE_TYPE) \
+		-var subnet_id=$(SUBNET_ID) \
+		-var vpc_id=$(VPC_ID)
+
+destroy:
+	terraform destroy \
+		-var region=$(REGION) \
+		-var key_name=$(KEY_NAME) \
+		-var instance_type=$(INSTANCE_TYPE) \
+		-var subnet_id=$(SUBNET_ID) \
+		-var vpc_id=$(VPC_ID)
+
+# Define output variables
+INSTANCE_ID := $(shell terraform output instance_id)
+PUBLIC_IP := $(shell terraform output public_ip)
+
+# Define output commands
+output:
+	@echo "Instance ID: $(INSTANCE_ID)"
+	@echo "Public IP Address: $(PUBLIC_IP)"
