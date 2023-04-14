@@ -1,10 +1,10 @@
 data "aws_vpc" "vpc" {
-    id     = "${var.vpc_id}"
+  id = var.vpc_id
 }
 
 data "aws_subnet" "example" {
-  vpc_id     = "${var.vpc_id}"
-  id         = "${var.subnet_id}"
+  vpc_id = var.vpc_id
+  id     = var.subnet_id
 }
 
 resource "aws_security_group" "example" {
@@ -20,12 +20,12 @@ resource "aws_security_group" "example" {
 
 resource "aws_instance" "example" {
   ami           = "ami-0c94855ba95c71c99" # Linux AMI in us-east-1
-  instance_type = "${var.instance_type}"
-  subnet_id     = "${var.subnet_id}"
+  instance_type = var.instance_type
+  subnet_id     = var.subnet_id
 
   vpc_security_group_ids = [aws_security_group.example.id]
 
-  key_name               = "${var.key_name}"
+  key_name                    = var.key_name
   associate_public_ip_address = true
 
   connection {
