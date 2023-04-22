@@ -3,10 +3,10 @@
 ## -----------------------------------------------------------------------------
 
 # Global variables with a default value. Override as needed when invoking make.
-AWS_REGION?="us-west-2"
+AWS_REGION?="us-east-1"
 AWS_KEY_NAME?="infra"
-AWS_VPC_ID?="vpc-a6f052c3"
-AWS_SUBNET_ID?="subnet-a46befc1"
+AWS_VPC_ID?="vpc-137acc6e"
+AWS_SUBNET_ID?="subnet-bc1e84da"
 AWS_INSTANCE_TYPE="t2.micro"
 
 # Static variables.
@@ -15,7 +15,7 @@ STATE_FILEPATH=terraform.tfstate
 PUBLIC_IP=$(shell terraform output -state=${STATE_FILEPATH} -no-color -raw PublicIpAddress)
 INSTANCE_ID=$(shell terraform output -state=${STATE_FILEPATH} -no-color -raw InstanceId)
 INSTANCE_INFO=$(shell aws ec2 describe-instances --instance-ids ${INSTANCE_ID} | jq -r .Reservations[0].Instances[0])
-OS_TYPE=$(shell ssh -i ~/.ssh/keys/${AWS_KEY_NAME} ec2-user@${PUBLIC_IP} "uname -o")
+OS_TYPE=$(shell chmod 400 ${AWS_KEY_NAME}.pem;ssh -i ${AWS_KEY_NAME}.pem ec2-user@${PUBLIC_IP} "uname -o")
 
 define DEFAULT_ARGS
 -var region=${AWS_REGION} \
