@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_instance" "demo" {
-  ami                    = "ami-0c94855ba95c71c99"  # Replace with the desired Linux-based AMI ID
+  ami                    = var.ami_id  # Replace with the desired Linux-based AMI ID
   instance_type          = var.instance_type
   key_name               = var.key_name
   subnet_id              = var.subnet_id

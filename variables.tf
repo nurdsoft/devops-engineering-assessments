@@ -3,6 +3,11 @@ variable "region" {
   type        = string
 }
 
+variable "ami_id" {
+  description = "Id of the desired AMI"
+  type        = string
+}
+
 variable "key_name" {
   description = "SSH key pair name"
   type        = string
