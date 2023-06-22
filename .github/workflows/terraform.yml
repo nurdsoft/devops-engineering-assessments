@@ -1,11 +1,12 @@
-# Copied from: https://github.com/hashicorp/learn-terraform-github-actions/blob/main/.github/workflows/terraform.yml
-name: "Terraform"
+ame: "Terraform"
 
 on:
   push:
     branches:
       - main
-  pull_request:
+  pull_request_target:
+    types:
+      - opened
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -18,10 +19,14 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
+      GH_PAT: ${{ secrets.GH_PAT }}
     
     steps:
-      - name: Checkout
+      - name: Checkout Forked Repo
         uses: actions/checkout@v3
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
     
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -52,33 +57,28 @@ jobs:
       
       - name: Terraform Plan
         id: plan
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request_target'
         run: make plan
         continue-on-error: true
       
       - name: Update Pull Request
         uses: actions/github-script@v6
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request_target'
         env:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
-          github-token: ${{ secrets.TP_GH_PAT }}
+          github-token: ${{ env.GH_PAT }}
           script: |
             const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
             #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-
             <details><summary>Show Plan</summary>
-
             \`\`\`\n
             ${process.env.PLAN}
             \`\`\`
-
             </details>
-
             *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -89,3 +89,4 @@ jobs:
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
+      
