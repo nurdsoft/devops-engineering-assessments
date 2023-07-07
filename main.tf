@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_instance" "example" {
-  ami           = var.ami_id
+  ami           = "ami-0c94855ba95c71c99"
   instance_type = var.instance_type
   subnet_id     = var.subnet_id
   key_name      = var.key_name

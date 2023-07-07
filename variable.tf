@@ -17,7 +17,3 @@ variable "subnet_id" {
 variable "vpc_id" {
   description = "ID of the VPC where the instance will be deployed"
 }
-
-variable "ami_id" {
-  description = "AMI ID of the desired OS"
-}
