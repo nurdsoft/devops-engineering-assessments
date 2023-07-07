@@ -19,5 +19,5 @@ variable "vpc_id" {
 }
 
 variable "ami_id" {
-    description = "AMI ID of the desired OS"
+  description = "AMI ID of the desired OS"
 }
