@@ -6,6 +6,6 @@ resource "aws_instance" "ec2_demo" {
   vpc_security_group_ids = [aws_security_group.ec2_demo_sg.id]
 
   tags = {
-    Name = "Created_By_Terraform_Automation"
+    Name = "Created_By_Terraform"
   }
 }
