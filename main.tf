@@ -14,9 +14,9 @@ resource "aws_instance" "example02" {
 }
 
 output "InstanceId" {
-  value = aws_instance.example.id
+  value = aws_instance.example02.id
 }
 
 output "PublicIpAddress" {
-  value = aws_instance.example.public_ip
+  value = aws_instance.example02.public_ip
 }
