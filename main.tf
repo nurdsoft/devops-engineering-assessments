@@ -9,7 +9,7 @@ resource "aws_instance" "example" {
   key_name      = var.key_name
 
   tags = {
-    Name = "Example EC2 Instance"
+    Name = "Example Test EC2 Instance"
   }
 }
 
