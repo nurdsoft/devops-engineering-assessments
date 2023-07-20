@@ -29,7 +29,7 @@ resource "aws_security_group" "allow_ssh" {
 
 output "InstanceId" {
   description = <<DESC
-The private DNS name assigned to the instance. Can only be used inside the
+The private DNS name assigned to the instance. Can only be used inside
 Amazon EC2, and only available if you've enabled DNS hostnames for your VPC.
 DESC
   value       = aws_instance.instance.private_dns
