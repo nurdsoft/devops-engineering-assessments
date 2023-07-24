@@ -33,11 +33,7 @@ variable "region" {
 }
 
 variable "ami" {
-  description = <<DESC
-AMI to use for the instance. Required unless launch_template is specified and
-the Launch Template specifes an AMI. If an AMI is specified in the Launch
-Template, setting ami will override the AMI specified in the Launch Template.
-DESC
+  description = "AMI to use for the instance."
   type        = string
   default     = "ami-0341aeea105412b57"
 }
