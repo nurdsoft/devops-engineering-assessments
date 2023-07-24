@@ -14,7 +14,7 @@ resource "aws_instance" "instance" {
 
 resource "aws_security_group" "allow_ssh" {
   name        = "allow_ssh"
-  description = "Allow SSH inbound traffic"
+  description = "Allow SSH inbound traffic."
   vpc_id      = var.vpc_id
   tags        = var.tags
 
