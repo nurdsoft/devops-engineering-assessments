@@ -74,7 +74,7 @@ DESC
 }
 
 variable "subnet_id" {
-  description = "VPC Subnet ID in which to launch the subnet in."
+  description = "VPC Subnet ID in which to launch the instance in."
   type        = string
 }
 
