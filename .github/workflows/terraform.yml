@@ -42,9 +42,9 @@ jobs:
         with:
           terraform_version: 1.0.2
       
-      - name: Terraform Format
-        id: fmt
-        run: make fmt
+      # - name: Terraform Format
+      #   id: fmt
+      #   run: make fmt
 
       - name: Terraform Init
         id: init
