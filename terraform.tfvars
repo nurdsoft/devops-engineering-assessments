@@ -1,0 +1,5 @@
+Region = "us-east-1"
+KeyName = "your_key_pair_name"
+InstanceType = "t2.micro"
+SubnetId = "your_subnet_id"
+VpcId = "your_vpc_id"
