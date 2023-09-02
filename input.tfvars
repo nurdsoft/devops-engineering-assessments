@@ -1,0 +1,5 @@
+region        = "us-east-1"
+key_name      = "infra"
+instance_type = "t2.micro"
+subnet_id     = "subnet-bc1e84da"
+vpc_id        = "vpc-137acc6e"
