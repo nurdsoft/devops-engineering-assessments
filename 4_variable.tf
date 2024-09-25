@@ -21,13 +21,13 @@ variable "instance_type" {
 variable "subnet_id" {
   type        = string
   description = "SubnetId: ID of the subnet where the instance will be deployed"
-  default = "subnet-a46befc1"
+  default     = "subnet-a46befc1"
 }
 
 variable "vpc_id" {
   type        = string
   description = "VpcId: ID of the VPC where the instance will be deployed"
-  default = "vpc-a6f052c3"
+  default     = "vpc-a6f052c3"
 }
 
 variable "aws_security_group" {
