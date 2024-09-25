@@ -1,0 +1,5 @@
+# region        = "us-west-2"
+# key_name      = "infra"
+# vpc_id        = "vpc-a6f052c3"
+# subnet_id     = "subnet-a46befc1"
+# instance_type = "t2.micro"
