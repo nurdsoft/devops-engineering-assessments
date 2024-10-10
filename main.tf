@@ -2,14 +2,15 @@ provider "aws" {
   region = "us-east-1"
 }
 
-variable "key_name" {
+variable "KeyName" {
   description = "key_name"
   type        = string
 }
 
-variable "instance_type" {
+variable "InstanceType" {
   description = "instance_type"
   type        = string
+  default     = "t2.micro"
 }
 
 variable "file_name" {
@@ -76,10 +77,9 @@ data "aws_ami" "ubuntu_ami" {
 
 
 resource "aws_instance" "test_env_ec2" {
- # count                       = var.counter
   ami                         = data.aws_ami.ubuntu_ami.id
-  instance_type               = "t2.micro"
-  key_name                    = var.key_name
+  instance_type               = var.InstanceType
+  key_name                    = var.KeyName
   security_groups             = ["${aws_security_group.security.id}"]
   associate_public_ip_address = true
 
@@ -99,7 +99,7 @@ resource "aws_subnet" "subnet" {
 
 
 resource "aws_key_pair" "tf_key" {
-  key_name   = var.key_name
+  key_name   = var.KeyName
   public_key = tls_private_key.rsa.public_key_openssh
 }
 
