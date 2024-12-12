@@ -3,20 +3,21 @@
 ## -----------------------------------------------------------------------------
 
 # Global variables with a default value. Override as needed when invoking make.
-AWS_REGION?="us-west-2"
-AWS_KEY_NAME?="terraform"
-AWS_VPC_ID?="vpc-a6f052c3"
-AWS_SUBNET_ID?="subnet-a46befc1"
-AWS_INSTANCE_TYPE="t2.micro"
+AWS_REGION?=""
+AWS_KEY_NAME?=""
+AWS_VPC_ID?=""
+AWS_SUBNET_ID?=""
+AWS_INSTANCE_TYPE?=""
 SLACK_WEBHOOK_URL?=""
 
 # Static variables.
 PLAN_FILEPATH=plan.tfplan
 STATE_FILEPATH=terraform.tfstate
-PUBLIC_IP=$(shell terraform output -state=${STATE_FILEPATH} -no-color -raw PublicIpAddress)
-INSTANCE_ID=$(shell terraform output -state=${STATE_FILEPATH} -no-color -raw InstanceId)
-INSTANCE_INFO=$(shell aws ec2 describe-instances --instance-ids ${INSTANCE_ID} | jq -r .Reservations[0].Instances[0])
-OS_TYPE=$(shell ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/keys/${AWS_KEY_NAME} ec2-user@${PUBLIC_IP} "uname -o")
+
+# Define reusable Terraform output commands
+TERRAFORM_OUTPUT=terraform output -state=${STATE_FILEPATH} -no-color
+GET_PUBLIC_IP=${TERRAFORM_OUTPUT} -raw PublicIpAddress
+GET_INSTANCE_ID=${TERRAFORM_OUTPUT} -raw InstanceId
 
 define DEFAULT_ARGS
 -var region=${AWS_REGION} \
@@ -27,7 +28,7 @@ define DEFAULT_ARGS
 endef
 
 # Avoid name collisions between targets and files.
-.PHONY: help fmt init validate plan apply check-outputs verify validate-instance plan-destroy destroy clean
+.PHONY: help fmt init validate plan apply check-outputs verify validate-instance plan-destroy destroy clean notify-slack
 
 # A target to format and present all supported targets with their descriptions.
 help : Makefile
@@ -55,7 +56,7 @@ apply:
 
 ## check-outputs 		: Check for required Terraform outputs.
 check-outputs:
-	@if terraform output | grep -q "PublicIpAddress" && terraform output | grep -q "InstanceId"; then \
+	@if ${TERRAFORM_OUTPUT} | grep -q "PublicIpAddress" && ${TERRAFORM_OUTPUT} | grep -q "InstanceId"; then \
 		echo "Required outputs are present."; \
 	else \
 		echo "Error: Required outputs \"PublicIpAddress\" and/or \"InstanceId\" not found. Terminating the instance."; \
@@ -70,13 +71,16 @@ verify: check-outputs
 
 ## validate-instance 	: Validate the instance and its OS type.
 validate-instance:
-	@if [ "${OS_TYPE}" = "GNU/Linux" ]; then \
-		echo "Instance is running ${OS_TYPE}"; \
+	@PUBLIC_IP=$$(${GET_PUBLIC_IP}); \
+	INSTANCE_ID=$$(${GET_INSTANCE_ID}); \
+	OS_TYPE=$$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/keys/${AWS_KEY_NAME} ec2-user@$$PUBLIC_IP "uname -o"); \
+	if [ "$$OS_TYPE" = "GNU/Linux" ]; then \
+		echo "Instance is running $$OS_TYPE"; \
 		make notify-slack STATUS=success; \
 		make plan-destroy; \
 		make destroy; \
 	else \
-		echo "${OS_TYPE} is an invalid OS. Terminating the instance."; \
+		echo "$$OS_TYPE is an invalid OS. Terminating the instance."; \
 		make notify-slack STATUS=deploy-failed; \
 		make plan-destroy; \
 		make destroy; \
@@ -85,7 +89,6 @@ validate-instance:
 ## notify-slack 		: Send a Slack notification.
 notify-slack:
 	@./slack_notify.sh ${SLACK_WEBHOOK_URL} ${STATUS} "Terraform Deployment"
-
 
 ## plan-destroy 		: Run terraform plan destroy.
 plan-destroy:
