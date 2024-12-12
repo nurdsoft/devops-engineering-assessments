@@ -1,6 +1,10 @@
 # terraform
 
-Create an EC2 instance with a Linux based OS that is accessible over the internet via SSH.
+Create an EC2 instance with a Linux-based OS that is accessible over the internet via SSH.
+
+## Important Notice
+
+Our automation will validate your code challenge as soon as a PR is opened. This automated process will review and rate your submission based on its correctness and adherence to the requirements outlined below. **Please be mindful of this process when submitting your work.**
 
 ## Inputs
 
@@ -8,7 +12,7 @@ To ensure the proper functioning of our GitHub action, please only utilize the s
 
 - **Region**: AWS region where the instance will be deployed
 - **KeyName**: Name of the SSH key to be installed on the instance
-- **InstanceType**: EC2 instance type (i.e size of the instance)
+- **InstanceType**: EC2 instance type (i.e., size of the instance)
 - **SubnetId**: ID of the subnet where the instance will be deployed
 - **VpcId**: ID of the VPC where the instance will be deployed
 
@@ -19,7 +23,7 @@ Using any additional variables beyond the ones listed above may result in our Gi
 The following outputs should be produced:
 
 - **InstanceId**: ID of the newly created instance
-- **PublicIpAddress**: publicly accessible ip address as an output
+- **PublicIpAddress**: Publicly accessible IP address as an output
 
 ## Test
 

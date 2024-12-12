@@ -8,6 +8,7 @@ AWS_KEY_NAME?="terraform"
 AWS_VPC_ID?="vpc-a6f052c3"
 AWS_SUBNET_ID?="subnet-a46befc1"
 AWS_INSTANCE_TYPE="t2.micro"
+SLACK_WEBHOOK_URL?=""
 
 # Static variables.
 PLAN_FILEPATH=plan.tfplan
@@ -26,53 +27,75 @@ define DEFAULT_ARGS
 endef
 
 # Avoid name collisions between targets and files.
-.PHONY: help fmt init validate plan apply verify plan-destroy destroy clean
+.PHONY: help fmt init validate plan apply check-outputs verify validate-instance plan-destroy destroy clean
 
 # A target to format and present all supported targets with their descriptions.
 help : Makefile
 		@sed -n 's/^##//p' $<
 
-## fmt		: Run terraform fmt.
+## fmt			: Run terraform fmt.
 fmt:
 	terraform fmt -check=true -diff
 
-## init 		: Run terraform init.
+## init 			: Run terraform init.
 init:
 	terraform init
 
-## validate 	: Run terraform validate.
+## validate 		: Run terraform validate.
 validate:
 	terraform validate
 
-## plan 		: Run terraform plan.
+## plan 			: Run terraform plan.
 plan:
 	terraform plan ${DEFAULT_ARGS} -out=${PLAN_FILEPATH} -no-color -input=false
 
-## apply 		: Run terraform apply.
+## apply 			: Run terraform apply.
 apply:
 	terraform apply ${DEFAULT_ARGS} -auto-approve -input=false
 
-## verify 	: Verify if the desired outcome was achieved and run destroy.
-verify:
-	@if [ "${OS_TYPE}" = "GNU/Linux" ]; then\
-		echo "Instance is running ${OS_TYPE}";\
-		make plan-destroy;\
-		make destroy;\
-	else\
-		echo "${OS_TYPE} is an invalid OS. Terminating the instance.";\
-		make plan-destroy;\
-		make destroy;\
+## check-outputs 		: Check for required Terraform outputs.
+check-outputs:
+	@if terraform output | grep -q "PublicIpAddress" && terraform output | grep -q "InstanceId"; then \
+		echo "Required outputs are present."; \
+	else \
+		echo "Error: Required outputs \"PublicIpAddress\" and/or \"InstanceId\" not found. Terminating the instance."; \
+		make plan-destroy; \
+		make destroy; \
+		exit 1; \
 	fi
 
-## plan-destroy 	: Run terraform plan destroy.
+## verify  		: Verify if the desired outcome was achieved and run destroy.
+verify: check-outputs
+	make validate-instance
+
+## validate-instance 	: Validate the instance and its OS type.
+validate-instance:
+	@if [ "${OS_TYPE}" = "GNU/Linux" ]; then \
+		echo "Instance is running ${OS_TYPE}"; \
+		make notify-slack STATUS=success; \
+		make plan-destroy; \
+		make destroy; \
+	else \
+		echo "${OS_TYPE} is an invalid OS. Terminating the instance."; \
+		make notify-slack STATUS=deploy-failed; \
+		make plan-destroy; \
+		make destroy; \
+	fi
+
+## notify-slack 		: Send a Slack notification.
+notify-slack:
+	@./slack_notify.sh ${SLACK_WEBHOOK_URL} ${STATUS} "Terraform Deployment"
+
+
+## plan-destroy 		: Run terraform plan destroy.
 plan-destroy:
 	terraform plan -destroy ${DEFAULT_ARGS} -out=${PLAN_FILEPATH}
 
-## destroy 	: Run terraform destroy.
+## destroy 		: Run terraform destroy.
 destroy:
 	terraform destroy -auto-approve ${DEFAULT_ARGS}
 
-## clean		: Find and remove all terraform cache files.
+## clean			: Find and remove all terraform cache files.
 clean:
 	@find . -name ".terraform" -type d -print0 | xargs -0 -I {} rm -rf "{}"
 	@find . -name ".terraform.lock.hcl" -type f -print0 | xargs -0 -I {} rm -rf "{}"
