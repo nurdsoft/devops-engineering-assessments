@@ -32,6 +32,13 @@ jobs:
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
       
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/terraform
+          chmod 600 ~/.ssh/terraform
+          echo -e "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" >> ~/.ssh/config
+      
       - name: Check AWS Identity
         run: aws sts get-caller-identity
       
@@ -67,18 +74,3 @@ jobs:
         id: verify
         if: github.event_name == 'pull_request_target'
         run: make verify
-
-      - name: Fetch PR Author Details
-        id: fetch-author
-        run: |
-          curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/users/${{ github.event.pull_request.user.login }} > author.json
-          echo "::set-output name=username::$(jq -r .login author.json)"
-          echo "::set-output name=full_name::$(jq -r .name author.json)"
-
-      - name: Notify Slack
-        id: notify-slack
-        run: |
-          make notify-slack SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }} STATUS=success \
-            USERNAME=${{ steps.fetch-author.outputs.username }} \
-            FULL_NAME="${{ steps.fetch-author.outputs.full_name }}"
