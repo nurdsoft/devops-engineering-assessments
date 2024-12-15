@@ -1,6 +1,6 @@
 # terraform
 
-Create an EC2 instance with a Linux-based OS that is accessible over the internet via SSH.
+Create an AWS EC2 instance with a Linux-based OS that is accessible over the internet via SSH.
 
 ## Important Notice
 

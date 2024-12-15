@@ -73,18 +73,20 @@ verify: check-outputs
 validate-instance:
 	@PUBLIC_IP=$$(${GET_PUBLIC_IP}); \
 	INSTANCE_ID=$$(${GET_INSTANCE_ID}); \
-	OS_TYPE=$$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/keys/${AWS_KEY_NAME} ec2-user@$$PUBLIC_IP "uname -o"); \
-	if [ "$$OS_TYPE" = "GNU/Linux" ]; then \
-		echo "Instance is running $$OS_TYPE"; \
-		make notify-slack STATUS=success; \
-		make plan-destroy; \
-		make destroy; \
+	if OS_TYPE=$$(ssh -i ~/.ssh/terraform ec2-user@$$PUBLIC_IP "uname -o"); then \
+		if [ "$$OS_TYPE" = "GNU/Linux" ]; then \
+			echo "Instance is running $$OS_TYPE"; \
+			make notify-slack STATUS=success; \
+		else \
+			echo "$$OS_TYPE is an invalid OS. Terminating the instance."; \
+			make notify-slack STATUS=deploy-failed; \
+		fi; \
 	else \
-		echo "$$OS_TYPE is an invalid OS. Terminating the instance."; \
+		echo "Failed to SSH to the instance at $$PUBLIC_IP. Terminating the instance."; \
 		make notify-slack STATUS=deploy-failed; \
-		make plan-destroy; \
-		make destroy; \
-	fi
+	fi; \
+	make plan-destroy; \
+	make destroy;
 
 ## notify-slack 		: Send a Slack notification.
 notify-slack:
