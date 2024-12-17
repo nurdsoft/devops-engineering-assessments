@@ -31,8 +31,19 @@ resource "aws_security_group" "nurdsoft_sg" {
   }
 }
 
+# Data Source to get the last AMI of Amazon Linux 2
+data "aws_ami" "amazon_linux2" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
 resource "aws_instance" "nurdsoft_server" {
-  ami                    = "ami-007868005aea67c54" # AMI de Amazon Linux 2
+  ami                    = data.aws_ami.amazon_linux2.id # Dynamic AMI
   instance_type          = var.instance_type
   subnet_id              = var.subnet_id
   key_name               = var.key_name
