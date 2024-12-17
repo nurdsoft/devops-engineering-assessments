@@ -63,4 +63,8 @@ jobs:
       - name: Notify Slack on Failure
         if: failure()
         run: |
-          ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "deploy-failed" "Terraform Deployment"
+          ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            "deploy-failed" \
+            "Terraform Deployment" \
+            "${{ github.event.pull_request.user.login }}" \
+            "${{ github.event.pull_request.user.name || 'Unknown Name' }}"
