@@ -4,7 +4,7 @@ provider "aws" {
 
 # Security Group
 resource "aws_security_group" "nurdsoft_sg" {
-  name        = "nurdsoft_sg"
+  name        = "nurdsoft_ser_sg"
   description = "Allow HTTP, HTTPS, and SSH inbound traffic"
 
   dynamic "ingress" {
