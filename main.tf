@@ -32,7 +32,7 @@ resource "aws_security_group" "nurdsoft_sg" {
 }
 
 resource "aws_instance" "nurdsoft_server" {
-  ami                    = "ami-0866a3c8686eaeeba" # AMI de Amazon Linux 2
+  ami                    = "ami-007868005aea67c54" # AMI de Amazon Linux 2
   instance_type          = var.instance_type
   subnet_id              = var.subnet_id
   key_name               = var.key_name
