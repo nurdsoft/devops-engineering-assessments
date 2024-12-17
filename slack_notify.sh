@@ -1,13 +1,11 @@
 #!/bin/bash
 
-# Assigning arguments to variables
-WEBHOOK_URL=$1              # Slack webhook URL to send the message
-STATUS=$2                   # Status of the deployment process
-APP=${3:-"Terraform Deployment"} # Application name
-USERNAME=${4:-"Unknown User"}    # GitHub username of the PR author
-FULL_NAME=${5:-"Unknown Name"}   # Full name of the PR author
+WEBHOOK_URL=$1
+STATUS=$2
+APP=$3
+AUTHOR=${4:-"Unknown User"}
+PR_NUMBER=${5:-"N/A"}
 
-# Set appropriate messages and emojis based on the deployment status
 case $STATUS in
     success)
         MESSAGE=":white_check_mark: Verification for *${APP}* was successful!"
@@ -20,20 +18,18 @@ case $STATUS in
         ;;
 esac
 
-# Compose the Slack message
 NOTIFICATION="{
   \"attachments\": [
     {
       \"color\": \"$([ \"$STATUS\" == \"success\" ] && echo \"good\" || echo \"danger\")\",
-      \"pretext\": \"Terraform Workflow Result for PR #${GITHUB_PULL_REQUEST}\",
+      \"pretext\": \"Terraform Workflow Result for ${PR_NUMBER}\",
       \"text\": \"$MESSAGE\",
       \"fields\": [
-        {\"title\": \"Author\", \"value\": \"@$USERNAME\", \"short\": true},
-        {\"title\": \"Name\", \"value\": \"$FULL_NAME\", \"short\": true}
+        {\"title\": \"Author\", \"value\": \"@$AUTHOR\", \"short\": true},
+        {\"title\": \"PR\", \"value\": \"${PR_NUMBER}\", \"short\": true}
       ]
     }
   ]
 }"
 
-# Send the message to Slack via the webhook
 curl -X POST -H 'Content-type: application/json' --data "$NOTIFICATION" ${WEBHOOK_URL}
