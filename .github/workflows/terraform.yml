@@ -24,19 +24,34 @@ jobs:
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
     steps:
+      - name: Check if PR is from a Fork
+        id: check-fork
+        run: |
+          if [[ "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.event.pull_request.base.repo.full_name }}" ]]; then
+            echo "This PR is not from a forked repository. Skipping the workflow."
+            echo "IS_FORK=false" >> $GITHUB_ENV
+            exit 0
+          else
+            echo "This PR is from a forked repository. Continuing the workflow."
+            echo "IS_FORK=true" >> $GITHUB_ENV
+          fi
+
       - name: Checkout Forked Repo
+        if: env.IS_FORK == 'true'
         uses: actions/checkout@v3
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Fetch PR Details
+        if: env.IS_FORK == 'true'
         id: pr-details
         run: |
           echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
           echo "PR_AUTHOR=${{ github.event.pull_request.user.login }}" >> $GITHUB_ENV
 
       - name: Configure AWS Credentials
+        if: env.IS_FORK == 'true'
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -44,6 +59,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       
       - name: Set Up SSH Key
+        if: env.IS_FORK == 'true'
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/terraform
@@ -51,6 +67,7 @@ jobs:
           echo -e "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" >> ~/.ssh/config
 
       - name: Terraform Workflow
+        if: env.IS_FORK == 'true'
         run: |
           make init
           make validate
@@ -59,6 +76,7 @@ jobs:
           make verify || echo "VERIFY_FAILED=true" >> $GITHUB_ENV
 
       - name: Send Slack Notification
+        if: env.IS_FORK == 'true'
         run: |
           if [ "${VERIFY_FAILED}" = "true" ]; then
             ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "deploy-failed" "Terraform Deployment" "${{ env.PR_AUTHOR }}" "PR #${{ env.PR_NUMBER }}"
