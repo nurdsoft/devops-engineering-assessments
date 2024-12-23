@@ -22,14 +22,20 @@ jobs:
       AWS_INSTANCE_TYPE: ${{ secrets.AWS_INSTANCE_TYPE }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-    
+
     steps:
       - name: Checkout Forked Repo
         uses: actions/checkout@v3
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
-    
+
+      - name: Fetch PR Details
+        id: pr-details
+        run: |
+          echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          echo "PR_AUTHOR=${{ github.event.pull_request.user.login }}" >> $GITHUB_ENV
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -43,24 +49,19 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/terraform
           chmod 600 ~/.ssh/terraform
           echo -e "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" >> ~/.ssh/config
-      
-      - name: Terraform Init
-        run: make init
 
-      - name: Terraform Validate
-        run: make validate
-
-      - name: Terraform Plan
-        run: make plan
-
-      - name: Terraform Apply
-        run: make apply
-
-      - name: Terraform Verify
+      - name: Terraform Workflow
         run: |
-          make verify || true
+          make init
+          make validate
+          make plan
+          make apply
+          make verify || echo "VERIFY_FAILED=true" >> $GITHUB_ENV
 
-      - name: Notify Slack on Failure
-        if: failure()
+      - name: Send Slack Notification
         run: |
-          ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "deploy-failed" "Terraform Deployment"
+          if [ "${VERIFY_FAILED}" = "true" ]; then
+            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "deploy-failed" "Terraform Deployment" "${{ env.PR_AUTHOR }}" "PR #${{ env.PR_NUMBER }}"
+          else
+            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "success" "Terraform Deployment" "${{ env.PR_AUTHOR }}" "PR #${{ env.PR_NUMBER }}"
+          fi
