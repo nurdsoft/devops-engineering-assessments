@@ -1,71 +1,58 @@
-# terraform
+# DevOps Engineering Assessments
 
-Create an AWS EC2 instance with a Linux-based OS that is accessible over the internet via SSH.
+Welcome to the **DevOps Engineering Assessments** repository! This repository contains a collection of take-home assignments designed to evaluate your skills in DevOps and Systems Engineering.
 
-## Important Notice
+---
 
-Our automation will validate your code challenge as soon as a PR is opened. This automated process will review and rate your submission based on its correctness and adherence to the requirements outlined below. **Please be mindful of this process when submitting your work.**
-
-## Inputs
-
-To ensure the proper functioning of our GitHub action, please only utilize the specified variables mentioned below:
-
-- **Region**: AWS region where the instance will be deployed
-- **KeyName**: Name of the SSH key to be installed on the instance
-- **InstanceType**: EC2 instance type (i.e., size of the instance)
-- **SubnetId**: ID of the subnet where the instance will be deployed
-- **VpcId**: ID of the VPC where the instance will be deployed
-
-Using any additional variables beyond the ones listed above may result in our GitHub action getting stuck in an unintended loop. Please adhere to the provided variables to avoid potential issues.
-
-## Outputs
-
-The following outputs should be produced:
-
-- **InstanceId**: ID of the newly created instance
-- **PublicIpAddress**: Publicly accessible IP address as an output
-
-## Test
-
-Before submitting your PR for review, please ensure that you have executed the following commands to test your code. It is important to run these commands to validate and ensure consistency in your Terraform configuration. You can also utilize the [Makefile](./Makefile) for testing purposes.
+## Repository Structure
 
 ```sh
-# Reformat Terraform configuration to follow a consistent standard
-$ terraform fmt -check=true -diff
-
-# Initialize the terraform working directory
-$ terraform init
-
-# Validate terraform
-$ terraform validate
-
-# Dry-run
-$ terraform plan \
-    -var region=${AWS_REGION} \
-    -var key_name=${AWS_KEY_NAME} \
-    -var instance_type=${AWS_INSTANCE_TYPE} \
-    -var subnet_id=${AWS_SUBNET_ID} \
-    -var vpc_id=${AWS_VPC_ID} \
-    -out=plan.tfplan
-
-# Apply
-$ terraform apply -auto-approve \
-    -var region=${AWS_REGION} \
-    -var key_name=${AWS_KEY_NAME} \
-    -var instance_type=${AWS_INSTANCE_TYPE} \
-    -var subnet_id=${AWS_SUBNET_ID} \
-    -var vpc_id=${AWS_VPC_ID}
-
-Outputs:
-
-InstanceId = xxxxx
-PublicIpAddress = x.x.x.x
+.
+├── Makefile                       # Centralized task runner for testing and validation
+├── README.md                      # Overview of the repository
+├── assignments                    # Root directory for all assignments
+│   └── public-cloud               # Category for public cloud-related assignments
+│       └── aws                    # Subcategory for AWS-specific assessments
+│           ├── compute            # Group for compute-related tasks
+│           │   └── ec2-instance   # Assignment: EC2 instance setup
+│           └── networking         # Group for networking-related tasks
+│               └── site2site-vpn  # Assignment: Site-to-Site VPN setup
+└── slack_notify.sh                # Optional script for Slack notifications
 ```
 
-Running these commands will help verify the correctness and formatting of your Terraform code. It is essential to complete these steps before raising the PR for review.
+---
 
-## What to Submit
+## Assessments
 
-1. [Fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) `main` in this repo to your own namespace.
-2. Create a new branch in your repo with the name: `<your_github_username>`.
-3. Submit a [PR](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests) from your forked repo into the `main` branch of this repo.
+### 1. [EC2 Instance Setup](assignments/public-cloud/aws/compute/ec2-instance/README.md)
+Objective: Provision an AWS EC2 instance with a Linux-based OS, accessible via SSH.
+
+### 2. [Site-to-Site VPN Setup](assignments/public-cloud/aws/networking/site2site-vpn/README.md)
+Objective: Configure a secure Site-to-Site VPN connection between AWS and an on-premises data center.
+
+Each assignment contains a detailed `README.md` file with objectives, inputs, outputs, and instructions.
+
+---
+
+## Getting Started
+
+1. Clone the repository.
+2. Navigate to the desired assignment directory.
+3. Follow the instructions provided in the assignment-specific `README.md`.
+
+---
+
+## Contribution
+
+We welcome contributions to improve this repository! If you'd like to suggest changes or add new assignments:
+1. Fork the repository.
+2. Create a branch for your changes.
+3. Submit a pull request to the `main` branch.
+
+For detailed guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+## Contact
+
+If you have questions or need assistance, please contact us at [devops@nurdsoft.co](mailto:devops@nurdsoft.co).
