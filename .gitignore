@@ -17,6 +17,7 @@ terraform.tfvars
 terraform.tfstate
 
 # Terraform state backup
+terraform.tfstate.backup
 
 
 
