@@ -9,3 +9,6 @@
 
 # Terraform plan
 *.tfplan
+
+# teraform tfv
+terraform.tfvars
