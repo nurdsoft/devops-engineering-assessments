@@ -8,9 +8,18 @@ variable "InstanceType" {
   type        = string
 }
 
-variable "AMI" {
-  description = "AMI ID for the EC2 instance"
+variable "Key_Name" {
+  description = "Name of the SSH key pair to use for the EC2 instance"
+  type        = string
+}
+
+variable "subnet_id" {
+  description = "ID of the subnet where the EC2 instance will be deployed"
   type        = string
 
+}
+variable "vpc_id" {
+  description = "ID of the VPC where the resources will be deployed"
+  type        = string
 }
 

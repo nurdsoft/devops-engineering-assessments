@@ -4,7 +4,7 @@ provider "aws" {
 
 # Importar clave pública desde tu máquina local
 resource "aws_key_pair" "ssh_key" {
-  key_name   = "mtckey"                  # Nombre que se registrará en AWS
+  key_name   = var.Key_Name              # Nombre que se registrará en AWS
   public_key = file("~/.ssh/mtckey.pub") # Ruta al archivo de clave pública
 }
 
@@ -86,7 +86,7 @@ resource "aws_security_group" "ssh_access" {
 
 # EC2 Instance
 resource "aws_instance" "linux_instance" {
-  ami           = var.AMI
+  ami           = "ami-0c55b159cbfafe1f0"
   instance_type = var.InstanceType
   key_name      = aws_key_pair.ssh_key.key_name # Usar la clave registrada
   subnet_id     = aws_subnet.public.id
