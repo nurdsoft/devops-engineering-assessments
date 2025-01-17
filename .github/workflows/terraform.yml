@@ -27,24 +27,24 @@ jobs:
       - name: Set Assignment Directories
         id: set-directories
         run: |
-          # Fixed paths for ec2-instance and site2site-vpn
-          EC2_INSTANCE_DIR="assignments/public-cloud/aws/compute/ec2-instance"
-          SITE2SITE_VPN_DIR="assignments/public-cloud/aws/networking/site2site-vpn"
+          run: |
+             # Find assignment directories
+             ASSIGNMENT_DIR=$(find assignments/public-cloud/aws -type d -name "*")
 
-          # Validate if directories exist
-          if [ ! -d "$EC2_INSTANCE_DIR" ]; then
-            echo "Error: EC2 instance directory not found at $EC2_INSTANCE_DIR"
-            exit 1
-          fi
-          echo "EC2_INSTANCE_DIR=${EC2_INSTANCE_DIR}" >> $GITHUB_ENV
-          echo "EC2 instance directory set to: $EC2_INSTANCE_DIR"
+             # Check if any directory is found
+             if [ -z "$ASSIGNMENT_DIR" ]; then
+             echo "No assignment directory found."
+             exit 1
+             fi
 
-          if [ ! -d "$SITE2SITE_VPN_DIR" ]; then
-            echo "Error: Site-to-Site VPN directory not found at $SITE2SITE_VPN_DIR"
-            exit 1
-          fi
-          echo "SITE2SITE_VPN_DIR=${SITE2SITE_VPN_DIR}" >> $GITHUB_ENV
-          echo "Site-to-Site VPN directory set to: $SITE2SITE_VPN_DIR"
+             # Convert found directories to a newline-separated list
+             ASSIGNMENT_DIR=$(echo "$ASSIGNMENT_DIR" | tr ' ' '\n')
+
+             # Set the environment variable properly
+             echo "ASSIGNMENT_DIR=${ASSIGNMENT_DIR}" >> $GITHUB_ENV
+             echo "Assignment directory: $ASSIGNMENT_DIR"
+
+          
 
       # 3. Process EC2 Instance Directory
       - name: Process EC2 Instance Directory
