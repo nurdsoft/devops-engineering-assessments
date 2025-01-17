@@ -48,7 +48,7 @@ jobs:
 
       # 3. Process EC2 Instance Directory
       - name: Process EC2 Instance Directory
-        working-directory: ${{ env.EC2_INSTANCE_DIR }}
+        working-directory: devops-engineering-assessments/assignments/public-cloud/aws/compute/ec2-instance/
         run: |
           terraform init
           terraform validate
@@ -56,7 +56,7 @@ jobs:
 
       # 4. Process Site-to-Site VPN Directory
       - name: Process Site-to-Site VPN Directory
-        working-directory: ${{ env.SITE2SITE_VPN_DIR }}
+        working-directory: devops-engineering-assessments/assignments/public-cloud/aws/networking/site2site-vpn/
         run: |
           terraform init
           terraform validate
