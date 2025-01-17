@@ -27,7 +27,7 @@ jobs:
       - name: Determine Assignment Directory
         id: assignment-dir
         run: |
-          ASSIGNMENT_DIR=$(find assignments/public-cloud/aws -type d -name "*site2site-vpn" | head -n 1)
+          ASSIGNMENT_DIR=devops-engineering-assessments/assignments/public-cloud/aws/compute/ec2-instance/
 
           if [ -z "$ASSIGNMENT_DIR" ]; then
             echo "Error: Assignment directory not found."
