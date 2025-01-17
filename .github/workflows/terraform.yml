@@ -15,64 +15,49 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
     steps:
+      # 1. Checkout Code
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.ref }}
 
-      - name: Determine Assignment Directory
-        id: assignment-dir
+      # 2. Determine Assignment Directories
+      - name: Determine Assignment Directories
+        id: assignment-dirs
         run: |
-          ASSIGNMENT_DIR=devops-engineering-assessments/assignments/public-cloud/aws/compute/ec2-instance/
+          EC2_INSTANCE_DIR=devops-engineering-assessments/assignments/public-cloud/aws/compute/ec2-instance/
+          SITE2SITE_VPN_DIR=devops-engineering-assessments/assignments/public-cloud/aws/networking/site2site-vpn/
 
-          if [ -z "$ASSIGNMENT_DIR" ]; then
-            echo "Error: Assignment directory not found."
+          # Validate ec2-instance directory
+          if [ -z "$EC2_INSTANCE_DIR" ] || [ ! -d "$EC2_INSTANCE_DIR" ]; then
+            echo "Error: EC2 instance directory not found."
             exit 1
           fi
+          echo "EC2_INSTANCE_DIR=${EC2_INSTANCE_DIR}" >> $GITHUB_ENV
+          echo "EC2 instance directory: $EC2_INSTANCE_DIR"
 
-          echo "ASSIGNMENT_DIR=${ASSIGNMENT_DIR}" >> $GITHUB_ENV
-          export ASSIGNMENT_DIR=${ASSIGNMENT_DIR}
-          echo "Assignment directory: $ASSIGNMENT_DIR"
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Set Up SSH Key
-        run: |
-          if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
-            echo "Error: SSH_PRIVATE_KEY is not set."
+          # Validate site2site-vpn directory
+          if [ -z "$SITE2SITE_VPN_DIR" ] || [ ! -d "$SITE2SITE_VPN_DIR" ]; then
+            echo "Error: Site-to-Site VPN directory not found."
             exit 1
           fi
+          echo "SITE2SITE_VPN_DIR=${SITE2SITE_VPN_DIR}" >> $GITHUB_ENV
+          echo "Site-to-Site VPN directory: $SITE2SITE_VPN_DIR"
 
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/terraform
-          chmod 600 ~/.ssh/terraform
-          echo -e "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" >> ~/.ssh/config
-
-      - name: Terraform Workflow
-        working-directory: ${{ steps.assignment-dir.outputs.ASSIGNMENT_DIR }}
+      # 3. Process EC2 Instance Directory
+      - name: Process EC2 Instance Directory
+        working-directory: ${{ env.EC2_INSTANCE_DIR }}
         run: |
           terraform init
           terraform validate
-          terraform plan -out=tfplan
-          terraform apply -auto-approve tfplan || echo "VERIFY_FAILED=true" >> $GITHUB_ENV
+          terraform plan
 
-      - name: Send Slack Notification
+      # 4. Process Site-to-Site VPN Directory
+      - name: Process Site-to-Site VPN Directory
+        working-directory: ${{ env.SITE2SITE_VPN_DIR }}
         run: |
-          if [ "${VERIFY_FAILED}" = "true" ]; then
-            curl -X POST -H 'Content-type: application/json' \
-              --data '{"text":"❌ Terraform Deployment Failed. PR #${{ github.event.pull_request.number }} by ${{ github.event.pull_request.user.login }}"}' \
-              "${{ secrets.SLACK_WEBHOOK_URL }}"
-          else
-            curl -X POST -H 'Content-type: application/json' \
-              --data '{"text":"✅ Terraform Deployment Succeeded. PR #${{ github.event.pull_request.number }} by ${{ github.event.pull_request.user.login }}"}' \
-              "${{ secrets.SLACK_WEBHOOK_URL }}"
-          fi
+          terraform init
+          terraform validate
+          terraform plan
