@@ -36,6 +36,50 @@ jobs:
             echo "Error: EC2 instance directory not found at $EC2_INSTANCE_DIR"
             exit 1
           fi
+          echo "EC2_INSTANCE_DIR=${EC2_INSTANCE_DIR}" >> $GITHUB_ENV
+          echo "EC2 instance directory set to: $EC2_INSTANCE_DIR"
+
+          if [ ! -d "$SITE2SITE_VPN_DIR" ]; then
+            echo "Error: Site-to-Site VPN directory not found at $SITE2SITE_VPN_DIR"
+            exit 1
+          fi
+          echo "SITE2SITE_VPN_DIR=${SITE2SITE_VPN_DIR}" >> $GITHUB_ENV
+          echo "Site-to-Site VPN directory set to: $SITE2SITE_VPN_DIR"
+
+      # 3. Process EC2 Instance Directory
+      - name: Process EC2 Instance Directory
+        run: |
+          cd ${{ env.EC2_INSTANCE_DIR }}
+          terraform init
+          terraform validate
+          terraform plan
+
+      # 4. Process Site-to-Site VPN Directory
+      - name: Process Site-to-Site VPN Directory
+        run: |
+          cd ${{ env.SITE2SITE_VPN_DIR }}
+          terraform init
+          terraform validate
+          terraform plan
+      # 1. Checkout the Repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      # 2. Set Fixed Directories
+      - name: Set Assignment Directories
+        id: set-directories
+        run: |
+          # Fixed paths for ec2-instance and site2site-vpn
+          EC2_INSTANCE_DIR="assignments/public-cloud/aws/compute/ec2-instance"
+          SITE2SITE_VPN_DIR="assignments/public-cloud/aws/networking/site2site-vpn"
+
+          # Validate if directories exist
+          if [ ! -d "$EC2_INSTANCE_DIR" ]; then
+            echo "Error: EC2 instance directory not found at $EC2_INSTANCE_DIR"
+            exit 1
+          fi
           echo "ec2_instance_dir=${EC2_INSTANCE_DIR}" >> $GITHUB_OUTPUT
           echo "EC2 instance directory set to: $EC2_INSTANCE_DIR"
 
