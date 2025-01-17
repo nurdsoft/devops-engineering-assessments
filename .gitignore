@@ -9,3 +9,15 @@
 
 # Terraform plan
 *.tfplan
+
+# teraform tfv
+terraform.tfvars
+
+# Terraform state
+terraform.tfstate
+
+# Terraform state backup
+terraform.tfstate.backup
+
+
+

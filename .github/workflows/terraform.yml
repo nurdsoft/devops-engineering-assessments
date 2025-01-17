@@ -1,4 +1,4 @@
-name: "Terraform"
+name: "Terraform Workflow with Fixed Directories"
 
 on:
   pull_request_target:
@@ -15,67 +15,93 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
     steps:
-      - name: Check if PR is from a Fork
-        id: check-fork
-        run: |
-          if [[ "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.event.pull_request.base.repo.full_name }}" ]]; then
-            echo "This PR is not from a forked repository. Skipping the workflow."
-            echo "IS_FORK=false" >> $GITHUB_ENV
-            exit 0
-          else
-            echo "This PR is from a forked repository. Continuing the workflow."
-            echo "IS_FORK=true" >> $GITHUB_ENV
-          fi
-
-      - name: Checkout Forked Repo
-        if: env.IS_FORK == 'true'
+      # 1. Checkout the Repository
+      - name: Checkout Code
         uses: actions/checkout@v3
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
 
-      - name: Determine Assignment Directory
-        if: env.IS_FORK == 'true'
-        id: assignment-dir
+      # 2. Set Fixed Directories
+      - name: Set Assignment Directories
+        id: set-directories
         run: |
-          ASSIGNMENT_DIR=$(find assignments/public-cloud/aws -type d -name "*")
-          echo "ASSIGNMENT_DIR=${ASSIGNMENT_DIR}" >> $GITHUB_ENV
-          echo "Assignment directory: $ASSIGNMENT_DIR"
+          run: |
+             # Find assignment directories
+             ASSIGNMENT_DIR=$(find assignments/public-cloud/aws -type d -name "*")
 
-      - name: Configure AWS Credentials
-        if: env.IS_FORK == 'true'
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+             # Check if any directory is found
+             if [ -z "$ASSIGNMENT_DIR" ]; then
+             echo "No assignment directory found."
+             exit 1
+             fi
 
-      - name: Set Up SSH Key
-        if: env.IS_FORK == 'true'
+             # Convert found directories to a newline-separated list
+             ASSIGNMENT_DIR=$(echo "$ASSIGNMENT_DIR" | tr ' ' '\n')
+
+             # Set the environment variable properly
+             echo "ASSIGNMENT_DIR=${ASSIGNMENT_DIR}" >> $GITHUB_ENV
+             echo "Assignment directory: $ASSIGNMENT_DIR"
+
+          
+
+      # 3. Process EC2 Instance Directory
+      - name: Process EC2 Instance Directory
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/terraform
-          chmod 600 ~/.ssh/terraform
-          echo -e "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" >> ~/.ssh/config
-
-      - name: Terraform Workflow
-        if: env.IS_FORK == 'true'
-        working-directory: ${{ env.ASSIGNMENT_DIR }}
-        run: |
+          cd ${{ steps.set-directories.outputs.ec2_instance_dir }}
           terraform init
           terraform validate
-          terraform plan -out=tfplan
-          terraform apply -auto-approve tfplan || echo "VERIFY_FAILED=true" >> $GITHUB_ENV
+          terraform plan
 
-      - name: Send Slack Notification
-        if: env.IS_FORK == 'true'
+      # 4. Process Site-to-Site VPN Directory
+      - name: Process Site-to-Site VPN Directory
         run: |
-          if [ "${VERIFY_FAILED}" = "true" ]; then
-            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "deploy-failed" "Terraform Deployment" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
-          else
-            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "success" "Terraform Deployment" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
+          cd ${{ steps.set-directories.outputs.site2site_vpn_dir }}
+          terraform init
+          terraform validate
+          terraform plan
+      # 1. Checkout the Repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      # 2. Set Fixed Directories
+      - name: Set Assignment Directories
+        id: set-directories
+        run: |
+          # Fixed paths for ec2-instance and site2site-vpn
+          EC2_INSTANCE_DIR="assignments/public-cloud/aws/compute/ec2-instance"
+          SITE2SITE_VPN_DIR="assignments/public-cloud/aws/networking/site2site-vpn"
+
+          # Validate if directories exist
+          if [ ! -d "$EC2_INSTANCE_DIR" ]; then
+            echo "Error: EC2 instance directory not found at $EC2_INSTANCE_DIR"
+            exit 1
           fi
+          echo "ec2_instance_dir=${EC2_INSTANCE_DIR}" >> $GITHUB_OUTPUT
+          echo "EC2 instance directory set to: $EC2_INSTANCE_DIR"
+
+          if [ ! -d "$SITE2SITE_VPN_DIR" ]; then
+            echo "Error: Site-to-Site VPN directory not found at $SITE2SITE_VPN_DIR"
+            exit 1
+          fi
+          echo "site2site_vpn_dir=${SITE2SITE_VPN_DIR}" >> $GITHUB_OUTPUT
+          echo "Site-to-Site VPN directory set to: $SITE2SITE_VPN_DIR"
+
+      # 3. Process EC2 Instance Directory
+      - name: Process EC2 Instance Directory
+        run: |
+          cd ${{ steps.set-directories.outputs.ec2_instance_dir }}
+          terraform init
+          terraform validate
+          terraform plan
+
+      # 4. Process Site-to-Site VPN Directory
+      - name: Process Site-to-Site VPN Directory
+        run: |
+          cd ${{ steps.set-directories.outputs.site2site_vpn_dir }}
+          terraform init
+          terraform validate
+          terraform plan
