@@ -27,23 +27,23 @@ jobs:
       - name: Set Assignment Directories
         id: set-directories
         run: |
-          # Rutas fijas para ec2-instance y site2site-vpn
-          EC2_INSTANCE_DIR="devops-engineering-assessments/assignments/public-cloud/aws/compute/ec2-instance/"
-          SITE2SITE_VPN_DIR="devops-engineering-assessments/assignments/public-cloud/aws/networking/site2site-vpn/"
+          # Fixed paths for ec2-instance and site2site-vpn
+          EC2_INSTANCE_DIR="assignments/public-cloud/aws/compute/ec2-instance"
+          SITE2SITE_VPN_DIR="assignments/public-cloud/aws/networking/site2site-vpn"
 
-          # Validar si existen
+          # Validate if directories exist
           if [ ! -d "$EC2_INSTANCE_DIR" ]; then
-            echo "Error: EC2 instance directory not found at $EC2_INSTANCE_DIR."
+            echo "Error: EC2 instance directory not found at $EC2_INSTANCE_DIR"
             exit 1
           fi
-          echo "::set-output name=ec2_instance_dir::${EC2_INSTANCE_DIR}"
+          echo "ec2_instance_dir=${EC2_INSTANCE_DIR}" >> $GITHUB_OUTPUT
           echo "EC2 instance directory set to: $EC2_INSTANCE_DIR"
 
           if [ ! -d "$SITE2SITE_VPN_DIR" ]; then
-            echo "Error: Site-to-Site VPN directory not found at $SITE2SITE_VPN_DIR."
+            echo "Error: Site-to-Site VPN directory not found at $SITE2SITE_VPN_DIR"
             exit 1
           fi
-          echo "::set-output name=site2site_vpn_dir::${SITE2SITE_VPN_DIR}"
+          echo "site2site_vpn_dir=${SITE2SITE_VPN_DIR}" >> $GITHUB_OUTPUT
           echo "Site-to-Site VPN directory set to: $SITE2SITE_VPN_DIR"
 
       # 3. Process EC2 Instance Directory
