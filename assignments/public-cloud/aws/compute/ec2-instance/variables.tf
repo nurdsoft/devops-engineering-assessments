@@ -1,24 +1,27 @@
 variable "region" {
-  description = "AWS region where resources will be deployed"
+  description = "AWS region for the EC2 instance"
+  type        = string
+}
+
+variable "key_name" {
+  description = "Key pair name for SSH access"
+  type        = string
+}
+
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+}
+
+variable "subnet_id" {
+  description = "Subnet ID for the instance"
   type        = string
 }
 
 variable "vpc_id" {
-  description = "ID of the AWS VPC"
+  description = "VPC ID"
   type        = string
 }
 
-variable "customer_gateway_ip" {
-  description = "Public IP of on-premises VPN gateway"
-  type        = string
-}
 
-variable "bgp_asn" {
-  description = "AWS BGP ASN for VPN"
-  type        = string
-}
 
-variable "tunnel_inside_cidr" {
-  description = "List of CIDRs for VPN tunnels"
-  type        = list(string)
-}

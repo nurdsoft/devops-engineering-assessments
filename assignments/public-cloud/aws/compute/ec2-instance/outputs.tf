@@ -1,9 +1,9 @@
-output "vpn_connection_id" {
-  description = "VPN connection ID"
-  value       = aws_vpn_connection.vpn.id
+output "instance_id" {
+  description = "The ID of the created EC2 instance"
+  value       = aws_instance.web.id
 }
 
-output "vpn_tunnel_ips" {
-  description = "Public IPs of VPN tunnels"
-  value       = aws_vpn_connection.vpn.tunnel1[*].outside_ip_address
+output "public_ip" {
+  description = "The public IP of the EC2 instance"
+  value       = aws_instance.web.public_ip
 }
