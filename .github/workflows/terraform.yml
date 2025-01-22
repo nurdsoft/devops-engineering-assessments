@@ -56,18 +56,16 @@ jobs:
         if: env.IS_FORK == 'true'
         id: assignment-dir
         run: |
-          ASSIGNMENT_DIR=$(find assignments/public-cloud/aws -type d -name "*" | head -n 1)
+          # Restrict search to the designated directory
+          ASSIGNMENT_DIR=$(find assignments/public-cloud/aws -type f -name "*.tf" | xargs -I {} dirname {} | uniq | head -n 1)
+          
           if [[ -z "$ASSIGNMENT_DIR" ]]; then
-            echo "No assignment directory found."
+            echo "Error: No directory with Terraform files (*.tf) found in assignments/public-cloud/aws."
             exit 1
           fi
+
           echo "ASSIGNMENT_DIR=${ASSIGNMENT_DIR}" >> $GITHUB_ENV
-        post: |
-          if [ $? -eq 0 ]; then
-            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "success" "Determine Assignment Directory" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
-          else
-            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "fail" "Determine Assignment Directory" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
-          fi
+          echo "Terraform files found in directory: $ASSIGNMENT_DIR"
 
       - name: Configure AWS Credentials
         if: env.IS_FORK == 'true'
