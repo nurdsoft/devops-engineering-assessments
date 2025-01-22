@@ -19,16 +19,24 @@ jobs:
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
     steps:
+      - name: Notify Start of Workflow
+        run: |
+          ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "start" "Terraform Workflow" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
+
       - name: Check if PR is from a Fork
         id: check-fork
         run: |
           if [[ "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.event.pull_request.base.repo.full_name }}" ]]; then
-            echo "This PR is not from a forked repository. Skipping the workflow."
             echo "IS_FORK=false" >> $GITHUB_ENV
-            exit 0
           else
-            echo "This PR is from a forked repository. Continuing the workflow."
             echo "IS_FORK=true" >> $GITHUB_ENV
+          fi
+        continue-on-error: false
+        post: |
+          if [ $? -eq 0 ]; then
+            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "success" "Check if PR is from a Fork" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
+          else
+            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "fail" "Check if PR is from a Fork" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
           fi
 
       - name: Checkout Forked Repo
@@ -37,14 +45,27 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
+        post: |
+          if [ $? -eq 0 ]; then
+            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "success" "Checkout Forked Repo" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
+          else
+            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "fail" "Checkout Forked Repo" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
+          fi
 
       - name: Determine Assignment Directory
         if: env.IS_FORK == 'true'
         id: assignment-dir
         run: |
-          ASSIGNMENT_DIR=$(find assignments/public-cloud/aws -type d -name "*")
+          # Restrict search to the designated directory
+          ASSIGNMENT_DIR=$(find assignments/public-cloud/aws -type f -name "*.tf" | xargs -I {} dirname {} | uniq | head -n 1)
+          
+          if [[ -z "$ASSIGNMENT_DIR" ]]; then
+            echo "Error: No directory with Terraform files (*.tf) found in assignments/public-cloud/aws."
+            exit 1
+          fi
+
           echo "ASSIGNMENT_DIR=${ASSIGNMENT_DIR}" >> $GITHUB_ENV
-          echo "Assignment directory: $ASSIGNMENT_DIR"
+          echo "Terraform files found in directory: $ASSIGNMENT_DIR"
 
       - name: Configure AWS Credentials
         if: env.IS_FORK == 'true'
@@ -53,6 +74,12 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+        post: |
+          if [ $? -eq 0 ]; then
+            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "success" "Configure AWS Credentials" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
+          else
+            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "fail" "Configure AWS Credentials" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
+          fi
 
       - name: Set Up SSH Key
         if: env.IS_FORK == 'true'
@@ -61,6 +88,12 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/terraform
           chmod 600 ~/.ssh/terraform
           echo -e "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" >> ~/.ssh/config
+        post: |
+          if [ $? -eq 0 ]; then
+            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "success" "Set Up SSH Key" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
+          else
+            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "fail" "Set Up SSH Key" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
+          fi
 
       - name: Terraform Workflow
         if: env.IS_FORK == 'true'
@@ -70,12 +103,17 @@ jobs:
           terraform validate
           terraform plan -out=tfplan
           terraform apply -auto-approve tfplan || echo "VERIFY_FAILED=true" >> $GITHUB_ENV
+        post: |
+          if [ $? -eq 0 ]; then
+            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "success" "Terraform Workflow" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
+          else
+            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "fail" "Terraform Workflow" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
+          fi
 
-      - name: Send Slack Notification
-        if: env.IS_FORK == 'true'
+      - name: Notify Workflow Completion
         run: |
           if [ "${VERIFY_FAILED}" = "true" ]; then
-            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "deploy-failed" "Terraform Deployment" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
+            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "fail" "Overall Workflow" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
           else
-            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "success" "Terraform Deployment" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
+            ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "success" "Overall Workflow" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
           fi

@@ -37,8 +37,9 @@ Each assignment contains a detailed `README.md` file with objectives, inputs, ou
 ## Getting Started
 
 1. Clone the repository.
-2. Navigate to the desired assignment directory.
-3. Follow the instructions provided in the assignment-specific `README.md`.
+2. Navigate to the directory corresponding to your assignment.
+3. Only publish changes related to your assignment. Do not modify files or directories unrelated to your task.
+4. Follow the instructions provided in the assignment-specific README.md.
 
 ---
 
