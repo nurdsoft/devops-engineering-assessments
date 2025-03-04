@@ -36,7 +36,7 @@ jobs:
         if: always()
         run: |
           ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" \
-          "${{ (env.IS_FORK == 'true') && 'success' || 'fail' }}" \
+          "${{ env.IS_FORK == 'true' && 'success' || 'fail' }}" \
           "Check if PR is from a Fork" "${{ github.event.pull_request.user.login }}" \
           "PR #${{ github.event.pull_request.number }}"
 
@@ -51,7 +51,7 @@ jobs:
         if: always()
         run: |
           ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" \
-          "${{ (success()) && 'success' || 'fail' }}" \
+          "${{ job.status == 'success' && 'success' || 'fail' }}" \
           "Checkout Forked Repo" "${{ github.event.pull_request.user.login }}" \
           "PR #${{ github.event.pull_request.number }}"
 
@@ -72,7 +72,7 @@ jobs:
         if: always()
         run: |
           ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" \
-          "${{ (success()) && 'success' || 'fail' }}" \
+          "${{ job.status == 'success' && 'success' || 'fail' }}" \
           "Determine Assignment Directory" "${{ github.event.pull_request.user.login }}" \
           "PR #${{ github.event.pull_request.number }}"
 
@@ -88,7 +88,7 @@ jobs:
         if: always()
         run: |
           ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" \
-          "${{ (success()) && 'success' || 'fail' }}" \
+          "${{ job.status == 'success' && 'success' || 'fail' }}" \
           "Configure AWS Credentials" "${{ github.event.pull_request.user.login }}" \
           "PR #${{ github.event.pull_request.number }}"
 
@@ -104,7 +104,7 @@ jobs:
         if: always()
         run: |
           ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" \
-          "${{ (success()) && 'success' || 'fail' }}" \
+          "${{ job.status == 'success' && 'success' || 'fail' }}" \
           "Set Up SSH Key" "${{ github.event.pull_request.user.login }}" \
           "PR #${{ github.event.pull_request.number }}"
 
@@ -121,13 +121,13 @@ jobs:
         if: always()
         run: |
           ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" \
-          "${{ (success()) && 'success' || 'fail' }}" \
+          "${{ job.status == 'success' && 'success' || 'fail' }}" \
           "Terraform Workflow" "${{ github.event.pull_request.user.login }}" \
           "PR #${{ github.event.pull_request.number }}"
 
       - name: Notify Workflow Completion
         run: |
-          if [ "${VERIFY_FAILED}" = "true" ]; then
+          if [[ "$VERIFY_FAILED" == "true" ]]; then
             ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "fail" "Overall Workflow" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
           else
             ./slack_notify.sh "${{ secrets.SLACK_WEBHOOK_URL }}" "success" "Overall Workflow" "${{ github.event.pull_request.user.login }}" "PR #${{ github.event.pull_request.number }}"
