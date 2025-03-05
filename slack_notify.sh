@@ -1,5 +1,20 @@
 #!/bin/bash
 
+# Slack Notification Script for GitHub Actions
+# ---------------------------------------------
+# This script sends Slack notifications for Terraform workflow events in GitHub Actions.
+# It formats messages properly, assigns colors based on status, and prevents JSON formatting issues.
+#
+# Usage:
+#   bash slack_notify.sh <WEBHOOK_URL> <STATUS> <APP_NAME> <AUTHOR> <PR_NUMBER>
+#
+# Parameters:
+#   WEBHOOK_URL   - The Slack webhook URL for posting messages
+#   STATUS        - The workflow status ("success", "deploy-failed", "start")
+#   APP_NAME      - The name of the app being validated (e.g., "Terraform Workflow")
+#   AUTHOR        - GitHub username of the person who triggered the workflow
+#   PR_NUMBER     - The associated PR number for context in Slack notifications
+
 WEBHOOK_URL=$1
 STATUS=$2
 APP=$3
@@ -9,17 +24,25 @@ PR_NUMBER=${5:-"N/A"}
 # Ensure PR_NUMBER does not have duplicate "PR"
 CLEAN_PR_NUMBER="${PR_NUMBER}"
 
-# Determine message based on status
-if [[ "$STATUS" == "success" ]]; then
-    MESSAGE=":white_check_mark: Verification for *${APP}* was successful!"
-    COLOR="good"
-elif [[ "$STATUS" == "deploy-failed" ]]; then
-    MESSAGE=":x: Verification for *${APP}* failed. Deployment terminated."
-    COLOR="danger"
-else
-    MESSAGE=":grey_question: Unknown status for *${APP}*."
-    COLOR="warning"
-fi
+# Determine message and color based on status
+case $STATUS in
+    success)
+        MESSAGE=":white_check_mark: Verification for *${APP}* was successful!"
+        COLOR="good"
+        ;;
+    deploy-failed)
+        MESSAGE=":x: Verification for *${APP}* failed. Deployment terminated."
+        COLOR="danger"
+        ;;
+    start)
+        MESSAGE=":rocket: *${APP}* workflow has started!"
+        COLOR="good"
+        ;;
+    *)
+        MESSAGE=":grey_question: Unknown status for *${APP}*."
+        COLOR="warning"
+        ;;
+esac
 
 # Construct JSON notification using jq for proper escaping
 NOTIFICATION=$(jq -n \
