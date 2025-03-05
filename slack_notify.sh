@@ -6,8 +6,8 @@ APP=$3
 AUTHOR=${4:-"Unknown User"}
 PR_NUMBER=${5:-"N/A"}
 
-# Remove '#' from PR_NUMBER to prevent JSON formatting issues
-CLEAN_PR_NUMBER="PR ${PR_NUMBER}"
+# Ensure PR_NUMBER does not have duplicate "PR"
+CLEAN_PR_NUMBER="${PR_NUMBER}"
 
 # Determine message based on status
 if [[ "$STATUS" == "success" ]]; then
@@ -24,7 +24,7 @@ fi
 # Construct JSON notification using jq for proper escaping
 NOTIFICATION=$(jq -n \
     --arg color "$COLOR" \
-    --arg pretext "Terraform Workflow Result for $CLEAN_PR_NUMBER" \
+    --arg pretext "Terraform Workflow Result for PR $CLEAN_PR_NUMBER" \
     --arg text "$MESSAGE" \
     --arg author "@$AUTHOR" \
     --arg pr "$CLEAN_PR_NUMBER" \
